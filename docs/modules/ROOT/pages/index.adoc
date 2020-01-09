@@ -1,4 +1,13 @@
 = Welcome to the Antora Demo!
+= Test!
+# Test!
+```
+ public static String getSign(String appSecret, Map<String,Object> param) throws Exception {
+        String formattedString = formatSignatureParam(appSecret, param);
+        System.out.println("原始参数md5前:"+formattedString);
+        return getMD5String(formattedString);
+    }
+```
 
 This is the home page of the Antora Demo site.
 It is also the automatic start page for version *{page-component-version}* of Component B.
