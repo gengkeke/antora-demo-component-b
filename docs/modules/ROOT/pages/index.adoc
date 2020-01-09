@@ -23,9 +23,9 @@
 | ---- | ------------------------------------------------------------ |
 |      |                                                              |
 
-![Apply call a71a7](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-a71a7.png)
+image:https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-a71a7.png[]
 
-![Apply call 107ed](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-107ed.png)
+image:https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-107ed.png[]
 
 以下是一段 **JAVA** 代码生成签名的示例，以供用户参考。
 
@@ -130,7 +130,7 @@ API测试可通过Postman测试工具来实现，Postman是一款强大的Http�
 
 **步骤一**：API申请通过后，在“我的API—API详情”中查看API调用URL，API请求示例。
 
-![主要功能及操作方式 868f8](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-868f8.png)
+image:https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-868f8.png[]
 
 ![主要功能及操作方式 fd870](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-fd870.png)
 
@@ -162,4 +162,4 @@ API测试可通过Postman测试工具来实现，Postman是一款强大的Http�
 
 **步骤五**：查看返回结果与数据库核对。
 
-![主要功能及操作方式 db45d](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-db45d.png)
+image:https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-db45d.png[]
