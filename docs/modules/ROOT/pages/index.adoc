@@ -1,48 +1,165 @@
-= Welcome to TEST   XZXZXZXZXZ!
+## API签名
 
-= Test!
+签名：在API调用时使用AK/SK签名的加密方式，能够充分校验发送者的身份和保障数据传输的安全性。并在APP Secret泄漏时可进行重置，重新生成签名，保障API调用的安全性。
 
-# Test!
+**签名生成方法**：
 
-```
- public static String getSign(String appSecret, Map<String,Object> param) throws Exception {
+1. 准备参与签名的字段。参与签名的字段包含：
+
+   ```
+   （1）Headers中的必要参数：X_Auth_Key、X_Auth_ActionId、 X_Auth_Timestamp；
+   （2）API的输入参数：包含位于Query 、Headers、Body的输入参数。但需要注意的是，在注册API中，Body位置参与签名的参数只包含规范化的输入参数，即在表格中填写的参数。Body描述中的参数不参与签名）；
+   ```
+
+2. 将签名字段的KeyValuePair按照Key的字典顺序排列，然后组装成Key1=Value1&Key2=Value2…&Key n=Value n & APP Secret的字符串（需注意APP Secret放在最后）；
+
+3. 对生成的字符串进行128位md5算法做信息摘要，并转小写；
+
+4. 第3步得到的32位长度的全小写字符串即为生成的签名。
+
+5. 将签名填写至Headers中，Key为X_Auth_Signature。即可开始API的调用。
+
+|      | (1)在注册API中，Body位置参与签名的参数只包含规范化的输入参数，即在表格中填写的参数。Body描述中的参数不参与签名.(2)生成API中，Body中的"inFields"不参与签名,其余输入参数参与签名. |
+| ---- | ------------------------------------------------------------ |
+|      |                                                              |
+
+![Apply call a71a7](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-a71a7.png)
+
+![Apply call 107ed](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-107ed.png)
+
+以下是一段 **JAVA** 代码生成签名的示例，以供用户参考。
+
+```java
+public static void main(String[] args) throws Exception {
+        Map<String,Object> param = new HashMap<>();
+        param.put("param1",123);
+        param.put("header1","basdfasd");
+        param.put("body1","nabddf");
+        String sign = getSign("e9a4e9a15b494ab488a57cabd58c75f4", param);
+        System.out.println("md5信息摘要后"+sign);
+    }
+    public static String getSign(String appSecret, Map<String,Object> param) throws Exception {
         String formattedString = formatSignatureParam(appSecret, param);
         System.out.println("原始参数md5前:"+formattedString);
         return getMD5String(formattedString);
     }
+
+    /**
+     *
+     * @param sk app secret
+     * @param param 参数map，包括header，query和body中的参数
+     * @return
+     */
+
+    private static String formatSignatureParam(String sk, Map<String,Object> param) {
+        if (param == null){
+            throw new RuntimeException("error param");
+        }
+        //申请api时的apiId
+        param.put("X-Auth-ActionId",333);
+        //app key
+        param.put("X-Auth-Key",3333);
+        //当前时间戳，如果时间与服务端时间相差大于10分钟，此次请求将判定为签名错误
+        param.put("X-Auth-Timestamp",System.currentTimeMillis());
+        //使用TreeMap可以自动按照key字典顺序排序
+        TreeMap<String, String> paramMap = new TreeMap<>();
+        param.entrySet().forEach(en->{
+            //参数应当均为基本类型
+            paramMap.put(en.getKey(),en.getValue().toString());
+        });
+        Set<Map.Entry<String, String>> entries = paramMap.entrySet();
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, String> entry : entries) {
+            String key = entry.getKey();
+            String val = entry.getValue();
+            builder.append(key)
+                    .append("=")
+                    .append(val)
+                    .append("&");
+        }
+        return builder.append(sk).toString();
+    }
+
+
+    public static String getMD5String(String str) {
+        byte[] bytes = null;
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            bytes = md5.digest(str.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return bytes2Hex(bytes);
+
+    }
+
+    private static final char[] DIGITS_LOWER = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    private static final char[] DIGITS_UPPER = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+    public static String bytes2Hex(final byte[] data) {
+        return bytes2Hex(data, true);
+   }
+
+    public static String bytes2Hex(final byte[] data, final boolean toLowerCase) {
+        return bytes2Hex(data, toLowerCase ? DIGITS_LOWER : DIGITS_UPPER);
+    }
+
+    private static String bytes2Hex(final byte[] data, final char[] toDigits) {
+        final int l = data.length;
+        final char[] out = new char[l << 1];
+        // two characters form the hex value.
+        for (int i = 0, j = 0; i < l; i++) {
+            out[j++] = toDigits[(0xF0 & data[i]) >>> 4];
+            out[j++] = toDigits[0x0F & data[i]];
+        }
+        return new String(out);
+    }
 ```
 
-This is the home page of the Antora Demo site.
-It is also the automatic start page for version *{page-component-version}* of Component B.
+## API测试
 
-Component B is one of two documentation components in the Antora Demo.
-The other docs component, Component A, can be accessed via the component selector menu (aka component drawer) at the bottom of the menu on the left side of the page.
+API测试可通过Postman测试工具来实现，Postman是一款强大的Http发包测试工具，可实现API的签名功能以及请求发送，充分验证API的可用性。
 
-To switch to version 1.0 of this page, use the page version selector.
-The selector is on the task bar, located near the upper right corner of the page.
+根据AK/SK、API-Token 2种调用方式，也会存在2种类型的测试，如下。
 
-== Page source
+### API签名方式调用
 
-This page is sourced from the AsciiDoc file named [.path]_index.adoc_ that is located at [.path]_demo-component-b/docs/modules/ROOT/pages_.
+**步骤一**：API申请通过后，在“我的API—API详情”中查看API调用URL，API请求示例。
 
-=== Why is this the home page of Component B?
+![主要功能及操作方式 868f8](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-868f8.png)
 
-This page is automatically used as the start page of Component B because it is stored in the ROOT module and named [.path]_index.adoc_.
+![主要功能及操作方式 fd870](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-fd870.png)
 
-=== Why is this the home page of the Antora Demo site?
+**步骤二**：在“我的API—API调用”页面查看APP Key和APP Secret，并根据APP Secret生成签名。
 
-This page is used as the home page for the Antora Demo because it is assigned as the site `start_page` in the Demo site's playbook file [.path]_site.yml_.
+![主要功能及操作方式 e374a](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-e374a.png)
 
-== Cross reference syntax to target this page
+签名生成方法详见[API签名](https://insight.dtstack.com/public/helpSite/api/v3.0/Apply_call.html#API_Signature)，或可直接采用步骤三中的简易方法生成签名。
 
-To create a cross reference *to this page from another page in the ROOT module of Component B*, the xref syntax would be `\xref:index.adoc[]`.
+**步骤三**：打开链接 <https://codepen.io/hsunboy/pen/RdYyRb> 输入参与签名的参数，生成签名。
 
-To create a cross reference *to this page from a page in Module One of Component B*, the xref syntax would be `\xref:ROOT:index.adoc[]`.
+输入签名的参数包括APP Key 、APP Secret 、APP ID 、时间戳、输入参数（包含位于Body、Header、Query中的参数）。其中时间戳系统会自动生成，不需要填写，如下图。
 
-=== Always target the latest version of this page
+![Apply call 1497a](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-1497a.png)
 
-To create a cross reference *to the latest version of this page from a page in Component A*, the xref syntax would be `\xref:component-b::index.adoc[]`.
+|      | (1)在注册API中，Body位置参与签名的参数只包含规范化的输入参数，即在表格中填写的参数。Body描述中的参数不参与签名. (2)生成API中，Body中的"inFields"不参与签名,其余输入参数参与签名. 如下图所示。 |
+| ---- | ------------------------------------------------------------ |
+|      |                                                              |
 
-=== Target a specific version of this page
+![Apply call a71a7](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-a71a7.png)
 
-To create a cross reference *to version 1.0 of this page from a page in Component A*, the xref syntax would be `\xref:1.0@component-b::index.adoc[]`.
+![Apply call 107ed](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/Apply_call-107ed.png)
+
+**步骤四**：在Postman中发送请求。根据API的请求示例，填写Query、Header、Body中的内容，发送请求。
+
+![主要功能及操作方式 0c180](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-0c180.png)
+
+![主要功能及操作方式 cfe2e](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-cfe2e.png)
+
+**步骤五**：查看返回结果与数据库核对。
+
+![主要功能及操作方式 db45d](https://insight.dtstack.com/public/helpSite/api/v3.0/_images/%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%8F%8A%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F-db45d.png)
